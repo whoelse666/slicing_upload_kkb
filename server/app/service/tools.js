@@ -1,8 +1,8 @@
 /*
  * @Author: RONGWEI PENG
  * @Date: 2020-05-08 17:02:22
- * @LastEditTime: 2020-05-12 20:19:14
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-06 19:24:00
+ * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\server\app\service\tools.js
  * @Description:
  */
@@ -14,10 +14,12 @@ const nodemailer = require('nodemailer');
 
 const path = require('path');
 const fse = require('fs-extra');
-const chalk = require('chalk');
+// const chalk = require('chalk');
 
+// 配置发送验证码邮箱的权限
 const user_email = '347300979@qq.com';
-const auth_code = 'vrlkbfvmcgdsbgea';
+const auth_code = 'mpkohupkdlqrbgfi';
+
 
 const transporter = nodemailer.createTransport({
   service: 'qq',

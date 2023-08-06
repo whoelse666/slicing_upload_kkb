@@ -1,8 +1,8 @@
 /*
  * @Author: RONGWEI PENG
  * @Date: 2020-05-06 17:02:53
- * @LastEditTime: 2020-05-12 15:28:46
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-06 19:29:25
+ * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\server\app\controller\util.js
  * @Description:
  */
@@ -27,7 +27,7 @@ class UtilController extends BaseController {
       background: 'gainsboro', // 验证码图片背景颜色
       fontSize: 50,
       width: 100,
-      height: 40,
+      height: 40
     });
     console.log(chalk.green('captcha=>', captcha.text));
     this.ctx.session.captcha = captcha.text;
@@ -42,13 +42,15 @@ class UtilController extends BaseController {
     const { email } = ctx.request.query;
     const code = Math.random().toString().slice(2, 6);
     // const email = '18180987910@163.com'; // 接收者的邮箱
-    const subject = '测试邮件';
-    const text = '这是一封测试邮件';
-    const html = `<h2>测试一下:</h2><a class="elem-a" href="www.whoelse.top">
-      ${code}</a>`;
+    const subject = 'whoelse 邮件';
+    const text = '这是一封whoelse邮件';
+    const html = `<h2>whoelse的验证码:</h2>
+    <span class="elem-a"  >
+      ${code}</span>
+      `;
     this.ctx.session.emailcode = code;
-
     const has_send = await this.service.tools.sendMail(email, subject, text, html);
+    
     if (has_send) {
       this.message('发送成功');
       return;
@@ -120,7 +122,7 @@ class UtilController extends BaseController {
     }
     await fse.move(file.filepath, `${chunkPath}/${name}`);
     this.message({
-      message: '切片文件上传成功',
+      message: '切片文件上传成功'
     });
   }
 
@@ -130,7 +132,7 @@ class UtilController extends BaseController {
     const filePath = path.resolve(this.config.UPLOAD_DIR, `${hash}.${ext}`);
     await this.ctx.service.tools.mergeFile(filePath, hash, size);
     this.success({
-      url: `/public/${hash}.${ext}`,
+      url: `/public/${hash}.${ext}`
     });
   }
 }
