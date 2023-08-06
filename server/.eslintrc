@@ -1,0 +1,8 @@
+{
+  "extends": "eslint-config-egg",
+  "rules": {
+    "semi": ["error", "always"],
+    "spaced-comment": ["error", "always"], // 注释前必须有空格
+    "eggache/no-unexpected-plugin-keys": "never"
+  }
+}

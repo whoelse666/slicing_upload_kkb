@@ -1,0 +1,18 @@
+{
+  "name": "my__kkb__project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "front": "cd front  && npm run dev ",
+    "server": "cd server  && npm run dev ",
+    "mongo": "cd adminMongo  && npm start "
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://e.coding.net/prw1012/my__kkb__project.git"
+  },
+  "keywords": [],
+  "author": "'whoelse' <'347300979@qq.com'>",
+  "license": "ISC"
+}
