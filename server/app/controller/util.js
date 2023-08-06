@@ -1,7 +1,7 @@
 /*
  * @Author: RONGWEI PENG
  * @Date: 2020-05-06 17:02:53
- * @LastEditTime: 2023-08-06 19:29:25
+ * @LastEditTime: 2023-08-06 23:35:00
  * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\server\app\controller\util.js
  * @Description:
@@ -50,12 +50,12 @@ class UtilController extends BaseController {
       `;
     this.ctx.session.emailcode = code;
     const has_send = await this.service.tools.sendMail(email, subject, text, html);
-    
+
     if (has_send) {
       this.message('发送成功');
       return;
     }
-    this.message('发送失败');
+    this.message('失败');
   }
 
   // 文件下载(image) 流
@@ -86,8 +86,8 @@ class UtilController extends BaseController {
     const file = ctx.request.files[0];
     const { name } = ctx.request.body;
     const items = fs.readdirSync(this.config.UPLOAD_DIR);
-    console.log('console', items);
-    console.log('console', name);
+    console.log('uploadfile-items', items);
+    console.log('uploadfile-name', name);
     if (items.indexOf(name) < 0) {
       await fse.move(file.filepath, this.config.UPLOAD_DIR + '/' + file.filename);
       this.success(`/public/${file.filename}`, '上传成功');

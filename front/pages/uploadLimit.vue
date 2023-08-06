@@ -1,8 +1,8 @@
 <!--
  * @Author: RONGWEI PENG
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2020-05-13 20:37:59
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-06 23:39:59
+ * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\uploadLimit.vue
  * @Description:
  -->
@@ -70,7 +70,7 @@ export default {
       file: null,
       chunks: [],
       percentage: 0,
-      status: "", //warning  exception  success
+      status: "exception", //warning  exception  success
       url: "",
       srcList: []
     };
@@ -92,7 +92,7 @@ export default {
       }
       if (file) {
         this.percentage = 0;
-        this.status = "";
+        this.status = "exception";
         this.file = file;
       }
     },
