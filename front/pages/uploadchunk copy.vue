@@ -1,13 +1,15 @@
 <!--
  * @Author: RONGWEI PENG
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2023-08-07 17:31:45
+ * @LastEditTime: 2023-08-07 22:21:09
  * @LastEditors: pengrongwei
- * @FilePath: \my__kkb__project\front\pages\uploadLimit.vue
+ * @FilePath: \my__kkb__project\front\pages\uploadchunk.vue
  * @Description:
  -->
 <template>
   <div class="upload">
+    <img v-if="dialogImageUrl" :src="dialogImageUrl" width="100" height="100" />
+
     <div class="file-box">
       <a href="javascript:;" class="file"
         >选择文件
@@ -37,7 +39,7 @@
         >
           <i
             class="el-icon-loading"
-            style="color:#f56c6c"
+            style="color: #f56c6c"
             v-if="chunk.progress < 100 && chunk.progress > 0"
           ></i>
         </div>
@@ -72,7 +74,11 @@ export default {
       percentage: 0,
       status: "exception", //warning  exception  success
       url: "",
-      srcList: []
+      srcList: [],
+
+      dialogImageUrl: ""
+      // dialogImageUrl:
+      //   "https://img0.baidu.com/it/u=1940593137,1886084398&fm=253&fmt=auto&app=120&f=JPEG?w=625&h=500"
     };
   },
   computed: {
@@ -84,8 +90,15 @@ export default {
   methods: {
     // input  change事件
     handleFileChange(e) {
+      const that = this;
       const [file] = e.target.files;
-      console.log("console", file);
+      console.log("file", file);
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = function(e) {
+        that.dialogImageUrl = e.target.result;
+      };
+      this.inputImg = file.url;
       if (!file || !file.size) {
         this.alertMessage("error", "文件获取异常");
         return;
@@ -120,6 +133,7 @@ export default {
           cur += chunkSize;
         }
       }
+
       return chunks;
     },
 
@@ -176,7 +190,7 @@ export default {
               resolve(spark.end());
             }
           }
-          window.requestIdleCallback(workLoop);
+          window.requestIdleCallback(workLoop); //window.requestIdleCallback(callback[, options])
         };
         window.requestIdleCallback(workLoop);
       });
@@ -249,7 +263,7 @@ export default {
       }
       const file = this.file;
       const form = new FormData();
-      form.append("name", file.name);
+      form.append("name", file.name + "_" + new Date());
       form.append("file", file);
       const res = await this.$http.post("/uploadfile", form, {
         onUploadProgress: progressEvent => {
@@ -278,7 +292,7 @@ export default {
      * @Name: RONGWEI PENG
      * @Date: 2020-05-09 15:17:45
      * @LastEditTime: Do not edit
-     * @Description:
+     * @Description: 切片上传文件
      * @param {type} {}
      * @return: {}
      */
@@ -318,71 +332,24 @@ export default {
         .map((form, index) =>
           this.$http.post("/uploadfilechunks", form, {
             onUploadProgress: progressEvent => {
-              console.log(
-                ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2)
-              );
-              this.chunks[index].progress = (
+              const p = (
                 (progressEvent.loaded / progressEvent.total) *
                 100
               ).toFixed(2);
+              console.log(p);
+              this.chunks[index].progress = p;
             }
           })
         );
-
-      await this.sendRequest(requests, 3); //控制并发请求数量
-      await this.mergeRequest(this.file, CHUNK_SIZE, hash);
-    },
-
-    //控制并发请求数量
-    sendRequest(chunks, limit = 3) {
-      console.log("chunks", chunks);
-      return new Promise((resolve, reject) => {
-        let counter = 0,
-          isStop = false;
-        const len = chunks.length;
-
-        //*控制启动limit个任务
-        while (limit > 0) {
-          // 模拟延迟
-          setTimeout(() => start(), Math.random() * 2000);
-          limit--;
+      await Promise.all(requests).then(async ret => {
+        if (ret[0].data.code == -1) {
+          // 判断是否已存在
+          return this.alertMessage("warning", ret[0].data.message);
         }
-        const start = async () => {
-          const task = chunks.shift();
-          console.log("task", task);
-          if (!task) {
-            return;
-          }
-          const { form, index } = task;
-          try {
-            if (counter == len - 1) {
-              resolve();
-            } else {
-
-              await this.$http.post("/uploadfilechunks", form, {
-                onUploadProgress: progressEvent => {
-                  this.chunks[index].progress = (
-                    (progressEvent.loaded / progressEvent.total) *
-                    100
-                  ).toFixed(2);
-                }
-              });
-              counter++;
-              start();
-            }
-          } catch (error) {
-            this.chunks[index].progress = -1;
-            // 上传报错,重试的功能
-            if (task.error < 3) {
-              task.error++;
-              chunks.unshift(task);
-              start();
-            } else {
-              isStop = true;
-              reject();
-            }
-          }
-        };
+        const res = await this.mergeRequest(this.file, CHUNK_SIZE, hash);
+        this.url = this.baseUrl + res.data.url;
+        this.$set(this.srcList, 0, this.baseUrl + res.data.url);
+        this.file = "";
       });
     },
 

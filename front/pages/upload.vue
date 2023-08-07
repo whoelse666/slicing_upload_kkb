@@ -1,8 +1,8 @@
 <!--
  * @Author: RONGWEI PENG
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2020-05-12 15:02:59
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-07 22:21:06
+ * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\upload.vue
  * @Description:
  -->
@@ -34,7 +34,7 @@ export default {
   name: "upload",
   data() {
     return {
-      baseUrl: "http://127.0.0.1:7002",
+      baseUrl: "http://127.0.0.1:7001",
       url: "",
       percentage: 0,
       status: "exception" //warning  exception  success
