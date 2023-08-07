@@ -1,13 +1,15 @@
 <!--
  * @Author: RONGWEI PENG
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2023-08-06 23:41:50
+ * @LastEditTime: 2023-08-07 17:32:38
  * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\uploadchunk.vue
  * @Description:
  -->
 <template>
   <div class="upload">
+    <img v-if="dialogImageUrl" :src="dialogImageUrl" width="100" height="100" />
+
     <div class="file-box">
       <a href="javascript:;" class="file"
         >选择文件
@@ -31,7 +33,7 @@
           :class="{
             success: chunk.progress == 100,
             error: chunk.progress < 0,
-            uploading: chunk.progress > 0 && chunk.progress < 100,
+            uploading: chunk.progress > 0 && chunk.progress < 100
           }"
           :style="{ height: chunk.progress + '%' }"
         >
@@ -61,31 +63,42 @@
 //***************************************************************************************/
 <script>
 import sparkMD5 from "spark-md5";
-const CHUNK_SIZE = 0.5 * 1024 * 1024;
+const CHUNK_SIZE = (1 / 16) * 1024 * 1024;
 export default {
   name: "uploadchunk",
   data() {
     return {
-      baseUrl: "http://127.0.0.1:7001",
+      baseUrl: "http://127.0.0.1:7002",
       file: null,
       chunks: [],
       percentage: 0,
       status: "exception", //warning  exception  success
       url: "",
       srcList: [],
+
+      dialogImageUrl: ""
+      // dialogImageUrl:
+      //   "https://img0.baidu.com/it/u=1940593137,1886084398&fm=253&fmt=auto&app=120&f=JPEG?w=625&h=500"
     };
   },
   computed: {
     cubeWidth() {
       console.log("console", this.chunks.length);
       return Math.ceil(Math.sqrt(this.chunks.length) * 16);
-    },
+    }
   },
   methods: {
     // input  change事件
     handleFileChange(e) {
+      const that = this;
       const [file] = e.target.files;
-      console.log("console", file);
+      console.log("file", file);
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = function(e) {
+        that.dialogImageUrl = e.target.result;
+      };
+      this.inputImg = file.url;
       if (!file || !file.size) {
         this.alertMessage("error", "文件获取异常");
         return;
@@ -115,20 +128,21 @@ export default {
             file: file.slice(
               cur,
               cur + chunkSize > file.size ? file.size : cur + chunkSize
-            ),
+            )
           });
           cur += chunkSize;
         }
       }
+
       return chunks;
     },
 
     //计算hash Worker
     async calcuateHashWorker(chunks) {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         this.worker = new Worker("/hash.js");
         this.worker.postMessage({ chunks });
-        this.worker.onmessage = (event) => {
+        this.worker.onmessage = event => {
           const { progress, hash } = event.data;
           this.hashPercentage = Number(progress.toFixed(2));
           if (hash) {
@@ -150,20 +164,20 @@ export default {
      * @return: {文件切片的哈希值}
      */
     async calcuateHashIdle(chunks) {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         const spark = new sparkMD5.ArrayBuffer();
         let count = 0;
-        const appendToSpark = async (file) => {
-          return new Promise((resolve) => {
+        const appendToSpark = async file => {
+          return new Promise(resolve => {
             const reader = new FileReader();
             reader.readAsArrayBuffer(file);
-            reader.onload = (e) => {
+            reader.onload = e => {
               spark.append(e.target.result);
               resolve();
             };
           });
         };
-        const workLoop = async (deadline) => {
+        const workLoop = async deadline => {
           while (count < chunks.length && deadline.timeRemaining() > 1) {
             await appendToSpark(chunks[count].file);
             count++;
@@ -191,7 +205,7 @@ export default {
      * @return: {}
      */
     async calcuateHash(chunkSize = CHUNK_SIZE) {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         let blobSlice =
             File.prototype.slice ||
             File.prototype.mozSlice ||
@@ -202,7 +216,7 @@ export default {
           spark = new sparkMD5.ArrayBuffer(),
           fileReader = new FileReader();
         //读取操作完成时
-        fileReader.onload = function (e) {
+        fileReader.onload = function(e) {
           spark.append(e.target.result); // Append array buffer
           currentChunk++;
           if (currentChunk < chunks) {
@@ -215,7 +229,7 @@ export default {
         };
 
         //读取操作发生错误
-        fileReader.onerror = function (e) {
+        fileReader.onerror = function(e) {
           console.log("onerror", e);
         };
 
@@ -249,10 +263,10 @@ export default {
       }
       const file = this.file;
       const form = new FormData();
-      form.append("name", file.name +'_'+ new Date());
+      form.append("name", file.name + "_" + new Date());
       form.append("file", file);
       const res = await this.$http.post("/uploadfile", form, {
-        onUploadProgress: (progressEvent) => {
+        onUploadProgress: progressEvent => {
           console.log("progressEvent", progressEvent);
           if (progressEvent.loaded < progressEvent.total) {
             this.percentage =
@@ -261,7 +275,7 @@ export default {
             this.percentage = 100;
             this.status = "success";
           }
-        },
+        }
       });
       if (res.data.code === 0) {
         this.alertMessage("success", res.data.message);
@@ -302,7 +316,7 @@ export default {
           chunk: chunk.file, //required
           //*判断已经上传的切片,精度条方格显示100%
           // progress: uploaddedList.indexOf(name) > -1 ? 100 : 0,
-          progress: 0, //required  方块进度显示用
+          progress: 0 //required  方块进度显示用
         };
       });
       chunks = this.chunks;
@@ -317,18 +331,17 @@ export default {
         })
         .map((form, index) =>
           this.$http.post("/uploadfilechunks", form, {
-            onUploadProgress: (progressEvent) => {
-              console.log(
-                ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2)
-              );
-              this.chunks[index].progress = (
+            onUploadProgress: progressEvent => {
+              const p = (
                 (progressEvent.loaded / progressEvent.total) *
                 100
               ).toFixed(2);
-            },
+              console.log(p);
+              this.chunks[index].progress = p;
+            }
           })
         );
-      await Promise.all(requests).then(async (ret) => {
+      await Promise.all(requests).then(async ret => {
         if (ret[0].data.code == -1) {
           // 判断是否已存在
           return this.alertMessage("warning", ret[0].data.message);
@@ -354,9 +367,9 @@ export default {
           .post("/mergefile", {
             ext: file.name.split(".").pop(),
             size,
-            hash,
+            hash
           })
-          .then((res) => {
+          .then(res => {
             resolve(res.data);
             this.$message.success("上传成功!");
           });
@@ -385,15 +398,15 @@ export default {
 
     /* // ?验证文件真实信息,如图片头信息 */
     async blobToString(blob) {
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         const reader = new FileReader();
         reader.readAsBinaryString(blob);
-        reader.onloadend = function (e) {
+        reader.onloadend = function(e) {
           const ret = e.target.result
             .split("")
-            .map((v) => v.charCodeAt())
-            .map((v) => v.toString(16).toUpperCase())
-            .map((v) => v.padStart(2, "0"))
+            .map(v => v.charCodeAt())
+            .map(v => v.toString(16).toUpperCase())
+            .map(v => v.padStart(2, "0"))
             .join();
           resolve(ret);
         };
@@ -434,10 +447,10 @@ export default {
       this.$message({
         duration,
         type,
-        message,
+        message
       });
-    },
-  },
+    }
+  }
 };
 </script>
 

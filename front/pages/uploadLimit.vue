@@ -1,7 +1,7 @@
 <!--
  * @Author: RONGWEI PENG
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2023-08-06 23:39:59
+ * @LastEditTime: 2023-08-07 17:31:45
  * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\uploadLimit.vue
  * @Description:
@@ -61,12 +61,12 @@
 //***************************************************************************************/
 <script>
 import sparkMD5 from "spark-md5";
-const CHUNK_SIZE = 0.5 * 1024 * 1024;
+const CHUNK_SIZE = (1 / 16) * 1024 * 1024;
 export default {
   name: "uploadchunk",
   data() {
     return {
-      baseUrl: "http://127.0.0.1:7001",
+      baseUrl: "http://127.0.0.1:7002",
       file: null,
       chunks: [],
       percentage: 0,
@@ -358,6 +358,7 @@ export default {
             if (counter == len - 1) {
               resolve();
             } else {
+        
               await this.$http.post("/uploadfilechunks", form, {
                 onUploadProgress: progressEvent => {
                   this.chunks[index].progress = (

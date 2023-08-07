@@ -1,7 +1,7 @@
 /*
  * @Author: RONGWEI PENG
  * @Date: 2020-05-06 17:02:53
- * @LastEditTime: 2023-08-06 23:35:00
+ * @LastEditTime: 2023-08-07 15:18:50
  * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\server\app\controller\util.js
  * @Description:
@@ -22,9 +22,9 @@ class UtilController extends BaseController {
     const captcha = svgCaptcha.create({
       size: 4, // 验证码长度
       ignoreChars: '0o1il', // 验证码字符中排除 0o1i
-      noise: 3, // 干扰线条的数量
+      noise: 2, // 干扰线条的数量
       color: true, // 验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有
-      background: 'gainsboro', // 验证码图片背景颜色
+      background: 'white', // 验证码图片背景颜色
       fontSize: 50,
       width: 100,
       height: 40
@@ -128,11 +128,12 @@ class UtilController extends BaseController {
 
   // 合并文件切片
   async mergefile() {
+    console.log('this.ctx.request.body', this.ctx.request.body);
     const { size, hash, ext } = this.ctx.request.body;
     const filePath = path.resolve(this.config.UPLOAD_DIR, `${hash}.${ext}`);
     await this.ctx.service.tools.mergeFile(filePath, hash, size);
     this.success({
-      url: `/public/${hash}.${ext}`
+      url: `/public/${hash}.${ext}`,
     });
   }
 }

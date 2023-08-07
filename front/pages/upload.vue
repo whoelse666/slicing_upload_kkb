@@ -34,7 +34,7 @@ export default {
   name: "upload",
   data() {
     return {
-      baseUrl: "http://127.0.0.1:7001",
+      baseUrl: "http://127.0.0.1:7002",
       url: "",
       percentage: 0,
       status: "exception" //warning  exception  success
