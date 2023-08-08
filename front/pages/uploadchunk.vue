@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-container style=" border: 1px solid #eee">
+    <el-container style="border: 1px solid #eee">
       <el-container>
         <el-header style="text-align: right; font-size: 12px">
           <el-dropdown>
@@ -83,7 +83,7 @@ export default {
         //   url: "https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100",
         // },
       ],
-      imgList: []
+      imgList: [],
     };
   },
   methods: {
@@ -96,7 +96,7 @@ export default {
       if (!this.file) {
         this.$message({
           message: "请选择一个文件!",
-          type: "warning"
+          type: "warning",
         });
         return;
       }
@@ -105,7 +105,7 @@ export default {
       form.append("name", file.name);
       form.append("file", file);
       const res = await this.$http.post("/uploadfile", form, {
-        onUploadProgress: progressEvent => {
+        onUploadProgress: (progressEvent) => {
           console.log("progressEvent", progressEvent);
           if (progressEvent.loaded < progressEvent.total) {
             this.percentage =
@@ -114,7 +114,7 @@ export default {
             this.percentage = 100;
             this.status = "success";
           }
-        }
+        },
       });
       if (res.data.code === 0) {
         this.file = null;
@@ -122,17 +122,17 @@ export default {
         this.percentage = 0;
         this.imgList.push({
           name: file.name,
-          src: "../../server/app" + res.data.data
+          src: "../../server/app" + res.data.data,
         });
         this.$message({
           message: res.data.message,
-          type: "success"
+          type: "success",
         });
       } else {
         this.percentage = 0;
         this.$message({
           message: res.data.message,
-          type: "error"
+          type: "error",
         });
       }
     },
@@ -146,36 +146,86 @@ export default {
       if (!this.file) {
         this.$message({
           message: "请选择一个文件!",
-          type: "warning"
+          type: "warning",
         });
         return;
       }
       const file = this.file;
-      const chunks = this.createChunkFile(file);
+      let chunks = this.createChunkFile(file);
+      //完整文件的hash 值
       const hash = await this.calcuateHashIdle(chunks);
       // const hash = sparkMD5.hash("whoelse");  // 测试
-      console.log("hash===", hash);
-      const form = new FormData();
-      form.append("name", file.name);
-      form.append("chunk", chunks[0].file);
-      form.append("hash", hash);
-      /*    form.append("name", chunk.name);
-          form.append("hash", chunk.hash);
-          form.append("chunk", chunk.chunk); */
-      // const res = await this.$http.post("/uploadfilechunks", form, {
-      //   /*     onUploadProgress: progressEvent => {
-      //     console.log("progressEvent", progressEvent);
-      //     if (progressEvent.loaded < progressEvent.total) {
-      //       this.percentage =
-      //         (progressEvent.loaded / progressEvent.total) * 100;
-      //     } else {
-      //       this.percentage = 100;
-      //       this.status = "success";
-      //     }
-      //   } */
-      // });
-    },
+      chunks = chunks.map((chunk, index) => {
+        return {
+          name: hash + "-" + index, //required  方块进度显示用切片文件命名
+          hash, //完整文件的hash 值 ，作为文件夹命名
+          chunk: chunk.file,
+          //*判断已经上传的切片,精度条方格显示100%
+          // progress: uploaddedList.indexOf(name) > -1 ? 100 : 0,
+          progress: 0, //required  方块进度显示用
+        };
+      });
+      this.chunks = chunks;
 
+      const requests = chunks
+        .map((chunk) => {
+          const form = new FormData();
+          form.append("name", chunk.name);
+          form.append("hash", chunk.hash);
+          form.append("chunk", chunk.chunk);
+          return form;
+        })
+        .map((item) => {
+          const res = this.$http.post("/uploadfilechunks", item, {
+            onUploadProgress: (progressEvent) => {
+              if (progressEvent.loaded < progressEvent.total) {
+                this.percentage =
+                  (progressEvent.loaded / progressEvent.total) * 100;
+              } else {
+                this.percentage = 100;
+                this.status = "success";
+              }
+            },
+          });
+          return res;
+        });
+
+      console.log("requests", requests);
+
+      Promise.all(requests).then(async (res) => {
+        console.log(" Promise.all", res);
+        if (res[0].data.code == -1) {
+          // 判断是否已存在
+          return this.$message({
+            message: res[0].data.message,
+            type: "warning",
+          });
+        }
+        const ret = await this.mergeRequest(this.file, CHUNK_SIZE, hash);
+        // this.file = "";
+      });
+    },
+    /**
+     * @name: 合并切片文件
+     * @param {type} {file,size,hash}
+     * @return: null
+     */
+    async mergeRequest(file, size = CHUNK_SIZE, hash) {
+
+      console.log('mergefile  file',file);
+      return new Promise((resolve, reject) => {
+        this.$http
+          .post("/mergefile", {
+            ext: file.name.split(".").pop(),
+            size,
+            hash,
+          })
+          .then((res) => {
+            resolve(res.data);
+            this.$message.success("上传成功!");
+          });
+      });
+    },
     handleChange(file, fileList) {
       console.log("file===", file, fileList);
       this.file = file.raw; // file.raw是二进制
@@ -197,7 +247,7 @@ export default {
           file: file.slice(
             start,
             start + chunkSize > file.size ? file.size : start + chunkSize
-          )
+          ),
         });
         start += chunkSize;
       }
@@ -225,14 +275,14 @@ export default {
           }
         }
         async function appendToSpark(file) {
-          return new Promise(resolve => {
+          return new Promise((resolve) => {
             const reader = new FileReader();
             reader.readAsArrayBuffer(file);
-           reader.onload = e => {
+            reader.onload = (e) => {
               spark.append(e.target.result);
               resolve();
             };
-            reader.onerror = function(err) {
+            reader.onerror = function (err) {
               console.warn("reader went wrong.", err);
             };
           });
@@ -248,8 +298,8 @@ export default {
     },
     handlePreview(file) {
       console.log(file);
-    }
-  }
+    },
+  },
 };
 </script>
 
