@@ -1,5 +1,5 @@
 <!--
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-05-08 15:29:25
  * @LastEditTime: 2023-08-07 22:21:09
  * @LastEditors: pengrongwei
@@ -111,7 +111,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:45:42
      * @LastEditTime: Do not edit
      * @Description: 文件切块
@@ -156,7 +156,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:10:30
      * @LastEditTime: Do not edit
      * @Description: 计算hash Idle
@@ -197,7 +197,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 14:32:29
      * @LastEditTime: Do not edit
      * @Description: 计算文件的哈希值
@@ -246,7 +246,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:44:34
      * @LastEditTime: Do not edit
      * @Description: 上传文件
@@ -289,7 +289,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:17:45
      * @LastEditTime: Do not edit
      * @Description: 切片上传文件
@@ -354,7 +354,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:54:41
      * @LastEditTime: Do not edit
      * @Description: 合并切片文件
@@ -436,7 +436,7 @@ export default {
       return isOk;
     },
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:44:34
      * @LastEditTime: Do not edit
      * @Description: message 提示

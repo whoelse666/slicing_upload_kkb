@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-container style="height: 500px; border: 1px solid #eee">
+    <el-container style=" border: 1px solid #eee">
       <el-container>
         <el-header style="text-align: right; font-size: 12px">
           <el-dropdown>
@@ -11,16 +11,17 @@
               <el-dropdown-item>删除</el-dropdown-item>
             </el-dropdown-menu>
           </el-dropdown>
-          <span>王小虎</span>
+          <span>风浪越大鱼越贵</span>
         </el-header>
-
         <el-main>
           <div class="upload_box">
             <el-upload
+              :limit="limit"
               drag
               action=""
               :auto-upload="false"
               class="upload-demo"
+              :on-exceed="handleExceed"
               :on-preview="handlePreview"
               :on-remove="handleRemove"
               :on-change="handleChange"
@@ -38,9 +39,25 @@
               </div>
             </el-upload>
 
-            <el-button size="small" type="success" @click="submitUpload"
-              >上传到服务器</el-button
+            <el-button size="small" type="primary" @click="uploadFile"
+              >完整上传</el-button
             >
+            <el-button size="small" type="primary" @click="uploadFileChunks"
+              >切片上传
+            </el-button>
+            <el-progress v-if="file" :percentage="percentage"></el-progress>
+
+            <div>
+              <div v-for="item in imgList" :key="item.name">
+                <span>{{ item.name }}</span>
+                <el-image
+                  fit="cover"
+                  style="width: 100px; height: 100px"
+                  :src="item.src"
+                >
+                </el-image>
+              </div>
+            </div>
           </div>
         </el-main>
       </el-container>
@@ -49,45 +66,196 @@
 </template>
 
 <script>
-const CHUNK_SIZE = 1024 * 1024 * (1 / 6);
+const CHUNK_SIZE = (1 / 16) * 1024 * 1024;
+import sparkMD5 from "spark-md5";
 
 export default {
   data() {
     return {
+      limit: 3,
+      percentage: 0,
+      status: null,
+      file: null,
+      chunks: [],
       fileList: [
         // {
         //   name: "food.jpeg",
         //   url: "https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100",
         // },
       ],
+      imgList: []
     };
   },
   methods: {
-    submitUpload(data, config) {
-      // this.$refs.upload.submit();
+    /**
+     * 上传文件
+     * @param file 文件
+     * @return: null
+     */
+    async uploadFile() {
+      if (!this.file) {
+        this.$message({
+          message: "请选择一个文件!",
+          type: "warning"
+        });
+        return;
+      }
+      const file = this.file;
+      const form = new FormData();
+      form.append("name", file.name);
+      form.append("file", file);
+      const res = await this.$http.post("/uploadfile", form, {
+        onUploadProgress: progressEvent => {
+          console.log("progressEvent", progressEvent);
+          if (progressEvent.loaded < progressEvent.total) {
+            this.percentage =
+              (progressEvent.loaded / progressEvent.total) * 100;
+          } else {
+            this.percentage = 100;
+            this.status = "success";
+          }
+        }
+      });
+      if (res.data.code === 0) {
+        this.file = null;
+        this.fileList = [];
+        this.percentage = 0;
+        this.imgList.push({
+          name: file.name,
+          src: "../../server/app" + res.data.data
+        });
+        this.$message({
+          message: res.data.message,
+          type: "success"
+        });
+      } else {
+        this.percentage = 0;
+        this.$message({
+          message: res.data.message,
+          type: "error"
+        });
+      }
     },
+
+    /**
+      切片上传
+     * @param file 文件
+     * @return: null
+     */
+    async uploadFileChunks() {
+      if (!this.file) {
+        this.$message({
+          message: "请选择一个文件!",
+          type: "warning"
+        });
+        return;
+      }
+      const file = this.file;
+      const chunks = this.createChunkFile(file);
+      const hash = await this.calcuateHashIdle(chunks);
+      // const hash = sparkMD5.hash("whoelse");  // 测试
+      console.log("hash===", hash);
+      const form = new FormData();
+      form.append("name", file.name);
+      form.append("chunk", chunks[0].file);
+      form.append("hash", hash);
+      /*    form.append("name", chunk.name);
+          form.append("hash", chunk.hash);
+          form.append("chunk", chunk.chunk); */
+      // const res = await this.$http.post("/uploadfilechunks", form, {
+      //   /*     onUploadProgress: progressEvent => {
+      //     console.log("progressEvent", progressEvent);
+      //     if (progressEvent.loaded < progressEvent.total) {
+      //       this.percentage =
+      //         (progressEvent.loaded / progressEvent.total) * 100;
+      //     } else {
+      //       this.percentage = 100;
+      //       this.status = "success";
+      //     }
+      //   } */
+      // });
+    },
+
     handleChange(file, fileList) {
       console.log("file===", file, fileList);
-
-      this.chunkFile(file, CHUNK_SIZE);
+      this.file = file.raw; // file.raw是二进制
     },
 
-    chunkFile(file, size = CHUNK_SIZE) {
-
-
+    /*
+    创建文件切片数组
+    * file 文件;
+    * chunkSize 切片大小
+    */
+    createChunkFile(file, chunkSize = CHUNK_SIZE) {
+      if (!file) return;
+      const chunks = [],
+        chunkCount = Math.ceil(file.size / chunkSize);
+      let start = 0;
+      for (let i = 0; i < chunkCount; i++) {
+        chunks.push({
+          index: start,
+          file: file.slice(
+            start,
+            start + chunkSize > file.size ? file.size : start + chunkSize
+          )
+        });
+        start += chunkSize;
+      }
+      console.log("chunks===", chunks);
+      return chunks;
     },
+
+    /*
+   计算文件切片hash
+    * chunks 切片数组;
+    */
+    async calcuateHashIdle(chunks) {
+      return new Promise((resolve, reject) => {
+        const spark = new sparkMD5.ArrayBuffer();
+        let count = 0;
+
+        workLoop();
+        async function workLoop() {
+          while (count < chunks.length) {
+            await appendToSpark(chunks[count].file);
+            count++;
+            if (count >= chunks.length) {
+              resolve(spark.end());
+            }
+          }
+        }
+        async function appendToSpark(file) {
+          return new Promise(resolve => {
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+           reader.onload = e => {
+              spark.append(e.target.result);
+              resolve();
+            };
+            reader.onerror = function(err) {
+              console.warn("reader went wrong.", err);
+            };
+          });
+        }
+      });
+    },
+
     handleRemove(file, fileList) {
       console.log(file, fileList);
     },
+    handleExceed(files, fileList) {
+      this.$message.warning(`当前限制选择 ${this.limit} 个文件 `);
+    },
     handlePreview(file) {
       console.log(file);
-    },
-  },
+    }
+  }
 };
 </script>
 
 <style lang="less">
 .upload_box {
+  padding: 20px;
   width: 500px;
   // height: 500px;
   border: 1px pink solid;

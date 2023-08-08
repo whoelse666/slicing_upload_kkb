@@ -7,6 +7,7 @@
     "front": "cd front  && npm run dev ",
     "server": "cd server  && npm run dev ",
     "mongo": "cd adminMongo  && npm start ",
+    "vite": "cd vue3-vite-front  && npm run dev ",
     "prepare": "husky install"
   },
   "repository": {

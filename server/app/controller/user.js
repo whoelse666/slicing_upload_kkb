@@ -1,5 +1,5 @@
 /*
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-05-06 16:47:17
  * @LastEditTime: 2023-08-06 19:30:14
  * @LastEditors: pengrongwei
@@ -90,7 +90,7 @@ class UserController extends BaseController {
   }
 
   /**
-   * @Name: RONGWEI PENG
+   * @Name: WHO ELSE
    * @Date: 2020-05-08 11:21:19
    * @LastEditTime: Do not edit
    * @Description: 校验邮箱是否已存在

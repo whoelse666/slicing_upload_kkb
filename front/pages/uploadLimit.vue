@@ -1,7 +1,7 @@
 <!--
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2023-08-07 17:31:45
+ * @LastEditTime: 2023-08-08 16:14:29
  * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\uploadLimit.vue
  * @Description:
@@ -85,7 +85,7 @@ export default {
     // input  change事件
     handleFileChange(e) {
       const [file] = e.target.files;
-      console.log("console", file);
+      console.log("handleFileChange file", file);
       if (!file || !file.size) {
         this.alertMessage("error", "文件获取异常");
         return;
@@ -98,7 +98,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:45:42
      * @LastEditTime: Do not edit
      * @Description: 文件切块
@@ -120,6 +120,8 @@ export default {
           cur += chunkSize;
         }
       }
+console.log('chunks===',chunks);
+
       return chunks;
     },
 
@@ -142,7 +144,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:10:30
      * @LastEditTime: Do not edit
      * @Description: 计算hash Idle
@@ -183,7 +185,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 14:32:29
      * @LastEditTime: Do not edit
      * @Description: 计算文件的哈希值
@@ -232,7 +234,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:44:34
      * @LastEditTime: Do not edit
      * @Description: 上传文件
@@ -251,6 +253,7 @@ export default {
       const form = new FormData();
       form.append("name", file.name);
       form.append("file", file);
+            console.log("uploadFile file ", file);
       const res = await this.$http.post("/uploadfile", form, {
         onUploadProgress: progressEvent => {
           console.log("progressEvent", progressEvent);
@@ -275,7 +278,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:17:45
      * @LastEditTime: Do not edit
      * @Description:
@@ -292,7 +295,7 @@ export default {
       const hash = await this.calcuateHashWorker(chunks);
       // const hash = await this.calcuateHashIdle(chunks);
       // const hash = sparkMD5.hash("WhoElse");
-      console.log("console", hash);
+         console.log("hash===", hash);
       this.chunks = chunks.map((chunk, index) => {
         let name = hash + "-" + index;
         return {
@@ -328,7 +331,7 @@ export default {
             }
           })
         );
-
+ 
       await this.sendRequest(requests, 3); //控制并发请求数量
       await this.mergeRequest(this.file, CHUNK_SIZE, hash);
     },
@@ -387,7 +390,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:54:41
      * @LastEditTime: Do not edit
      * @Description: 合并切片文件
@@ -469,7 +472,7 @@ export default {
       return isOk;
     },
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:44:34
      * @LastEditTime: Do not edit
      * @Description: message 提示
