@@ -1,7 +1,7 @@
 <!--
  * @Author: WHO ELSE
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2023-08-08 16:14:29
+ * @LastEditTime: 2023-08-09 17:46:08
  * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\uploadLimit.vue
  * @Description:
@@ -128,7 +128,7 @@ console.log('chunks===',chunks);
     //计算hash Worker
     async calcuateHashWorker(chunks) {
       return new Promise(resolve => {
-        this.worker = new Worker("/hash.js");
+        this.worker = new Worker("/workerHash.js");
         this.worker.postMessage({ chunks });
         this.worker.onmessage = event => {
           const { progress, hash } = event.data;
@@ -279,8 +279,6 @@ console.log('chunks===',chunks);
 
     /**
      * @Name: WHO ELSE
-     * @Date: 2020-05-09 15:17:45
-     * @LastEditTime: Do not edit
      * @Description:
      * @param {type} {}
      * @return: {}
@@ -321,9 +319,6 @@ console.log('chunks===',chunks);
         .map((form, index) =>
           this.$http.post("/uploadfilechunks", form, {
             onUploadProgress: progressEvent => {
-              console.log(
-                ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2)
-              );
               this.chunks[index].progress = (
                 (progressEvent.loaded / progressEvent.total) *
                 100
@@ -331,8 +326,8 @@ console.log('chunks===',chunks);
             }
           })
         );
- 
-      await this.sendRequest(requests, 3); //控制并发请求数量
+
+      // await this.sendRequest(requests, 3); //控制并发请求数量
       await this.mergeRequest(this.file, CHUNK_SIZE, hash);
     },
 
@@ -343,14 +338,7 @@ console.log('chunks===',chunks);
         let counter = 0,
           isStop = false;
         const len = chunks.length;
-
-        //*控制启动limit个任务
-        while (limit > 0) {
-          // 模拟延迟
-          setTimeout(() => start(), Math.random() * 2000);
-          limit--;
-        }
-        const start = async () => {
+  const start = async () => {
           const task = chunks.shift();
           console.log("task", task);
           if (!task) {
@@ -386,6 +374,13 @@ console.log('chunks===',chunks);
             }
           }
         };
+        //*控制启动limit个任务
+        while (limit > 0) {
+          // 模拟延迟
+          setTimeout(() => start(), Math.random() * 2000);
+          limit--;
+        }
+      
       });
     },
 

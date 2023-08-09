@@ -83,8 +83,17 @@ export default {
         //   url: "https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100",
         // },
       ],
-      imgList: [],
+      imgList: []
     };
+  },
+  mounted() {
+    // var f = ["🌑", "🌒", "🌓", "🌔", "🌝", "🌖", "🌗", "🌘"];
+    // function loop() {
+    //   location.hash =
+    //     "/uploadchunk?icon=" + f[Math.floor((Date.now() / 100) % f.length)];
+    //   setTimeout(loop, 50);
+    // }
+    // loop();
   },
   methods: {
     /**
@@ -96,7 +105,7 @@ export default {
       if (!this.file) {
         this.$message({
           message: "请选择一个文件!",
-          type: "warning",
+          type: "warning"
         });
         return;
       }
@@ -105,7 +114,7 @@ export default {
       form.append("name", file.name);
       form.append("file", file);
       const res = await this.$http.post("/uploadfile", form, {
-        onUploadProgress: (progressEvent) => {
+        onUploadProgress: progressEvent => {
           console.log("progressEvent", progressEvent);
           if (progressEvent.loaded < progressEvent.total) {
             this.percentage =
@@ -114,7 +123,7 @@ export default {
             this.percentage = 100;
             this.status = "success";
           }
-        },
+        }
       });
       if (res.data.code === 0) {
         this.file = null;
@@ -122,17 +131,17 @@ export default {
         this.percentage = 0;
         this.imgList.push({
           name: file.name,
-          src: "../../server/app" + res.data.data,
+          src: "../../server/app" + res.data.data
         });
         this.$message({
           message: res.data.message,
-          type: "success",
+          type: "success"
         });
       } else {
         this.percentage = 0;
         this.$message({
           message: res.data.message,
-          type: "error",
+          type: "error"
         });
       }
     },
@@ -146,15 +155,20 @@ export default {
       if (!this.file) {
         this.$message({
           message: "请选择一个文件!",
-          type: "warning",
+          type: "warning"
         });
         return;
       }
       const file = this.file;
       let chunks = this.createChunkFile(file);
       //完整文件的hash 值
-      const hash = await this.calcuateHashIdle(chunks);
+      // const hash = await this.calcuateHashWorker(chunks); //WebWork 计算
+      const hash = await this.calculateHashSample(chunks); //优化 抽样计算hash
+
+      // const hash = await this.calcuateHash(chunks);
+      // const hash = await this.calcuateHashIdle(chunks);
       // const hash = sparkMD5.hash("whoelse");  // 测试
+      console.log("完整文件的hash 值", hash);
       chunks = chunks.map((chunk, index) => {
         return {
           name: hash + "-" + index, //required  方块进度显示用切片文件命名
@@ -162,65 +176,128 @@ export default {
           chunk: chunk.file,
           //*判断已经上传的切片,精度条方格显示100%
           // progress: uploaddedList.indexOf(name) > -1 ? 100 : 0,
-          progress: 0, //required  方块进度显示用
+          progress: 0 //required  方块进度显示用
         };
       });
       this.chunks = chunks;
 
-      const requests = chunks
-        .map((chunk) => {
+      const requests = chunks.map((chunk,index) => {
+        const form = new FormData();
+        form.append("name", chunk.name);
+        form.append("hash", chunk.hash);
+        // form.append("index", chunk.index);
+        form.append("chunk", chunk.chunk);
+        return {form,index:  chunk.index};
+      });
+
+      //  TODO 开启 并发数量控制
+      await this.sendRequest(requests, 3); //控制并发请求数量
+      await this.mergeRequest(this.file, CHUNK_SIZE, hash);
+
+      /*  const requests = chunks
+        .map(chunk => {
           const form = new FormData();
           form.append("name", chunk.name);
           form.append("hash", chunk.hash);
           form.append("chunk", chunk.chunk);
           return form;
         })
-        .map((item) => {
+        .map((item, index) => {     //  TODO 启动所有任务
           const res = this.$http.post("/uploadfilechunks", item, {
-            onUploadProgress: (progressEvent) => {
-              if (progressEvent.loaded < progressEvent.total) {
-                this.percentage =
-                  (progressEvent.loaded / progressEvent.total) * 100;
-              } else {
-                this.percentage = 100;
-                this.status = "success";
-              }
-            },
+            onUploadProgress: progressEvent => {
+              this.chunks[index].progress = (
+                (progressEvent.loaded / progressEvent.total) *
+                100
+              ).toFixed(2);
+            }
           });
           return res;
         });
-
-      console.log("requests", requests);
-
-      Promise.all(requests).then(async (res) => {
-        console.log(" Promise.all", res);
+      //  TODO没有开启 并发数量控制
+      Promise.all(requests).then(async res => {
         if (res[0].data.code == -1) {
           // 判断是否已存在
           return this.$message({
             message: res[0].data.message,
-            type: "warning",
+            type: "warning"
           });
         }
-        const ret = await this.mergeRequest(this.file, CHUNK_SIZE, hash);
-        // this.file = "";
+        await this.mergeRequest(this.file, CHUNK_SIZE, hash);
+        this.file = "";
+      }); */
+    },
+
+    /**
+     * @name: 控制并发请求数量
+     * @param {type} {chunks,limit = 3}
+     * @return: null
+     */
+    sendRequest(chunks, limit = 3) {
+      console.log(' sendRequest(chunks',chunks);
+      return new Promise((resolve, reject) => {
+        let counter = 0 ;
+        const len = chunks.length;
+        const start = async () => {
+          const task = chunks.shift();
+
+          if ( task) {
+               const { form, index } = task;
+          console.log('form',form);
+          await this.$http.post("/uploadfilechunks", form, {
+            // onUploadProgress: progressEvent => {
+            //   this.chunks[index].progress = (
+            //     (progressEvent.loaded / progressEvent.total) *
+            //     100
+            //   ).toFixed(2);
+            // }
+          });
+          if (counter == len - 1) {
+            resolve();
+          } else {
+            counter++;
+            start();
+          }
+          }
+
+        };
+        //*控制启动limit个任务
+        while (limit > 0) {
+          // 模拟延迟
+          setTimeout(() => start(), Math.random() * 2000);
+          limit--;
+        }
       });
     },
+
     /**
      * @name: 合并切片文件
      * @param {type} {file,size,hash}
      * @return: null
      */
     async mergeRequest(file, size = CHUNK_SIZE, hash) {
-
-      console.log('mergefile  file',file);
+      console.log("mergefile  file", file);
       return new Promise((resolve, reject) => {
         this.$http
-          .post("/mergefile", {
-            ext: file.name.split(".").pop(),
-            size,
-            hash,
-          })
-          .then((res) => {
+          .post(
+            "/mergefile",
+            {
+              ext: file.name.split(".").pop(),
+              size,
+              hash
+            },
+            {
+              onUploadProgress: progressEvent => {
+                if (progressEvent.loaded < progressEvent.total) {
+                  this.percentage =
+                    (progressEvent.loaded / progressEvent.total) * 100;
+                } else {
+                  this.percentage = 100;
+                  this.status = "success";
+                }
+              }
+            }
+          )
+          .then(res => {
             resolve(res.data);
             this.$message.success("上传成功!");
           });
@@ -247,24 +324,39 @@ export default {
           file: file.slice(
             start,
             start + chunkSize > file.size ? file.size : start + chunkSize
-          ),
+          )
         });
         start += chunkSize;
       }
-      console.log("chunks===", chunks);
       return chunks;
     },
 
     /*
+   WebWork 计算文件切片hash
+    * chunks 切片数组;
+    */
+    async calcuateHashWorker(chunks) {
+      return new Promise((resolve, reject) => {
+        const worker = new Worker("./workerHash.js");
+        worker.postMessage({ chunks });
+        worker.onmessage = event => {
+          const { hash, progress } = event.data;
+          if (hash) {
+            resolve(hash);
+          }
+        };
+      });
+    },
+    /*
    计算文件切片hash
     * chunks 切片数组;
     */
-    async calcuateHashIdle(chunks) {
+    async calcuateHash(chunks) {
       return new Promise((resolve, reject) => {
         const spark = new sparkMD5.ArrayBuffer();
         let count = 0;
 
-        workLoop();
+        workLoop(workLoop);
         async function workLoop() {
           while (count < chunks.length) {
             await appendToSpark(chunks[count].file);
@@ -275,18 +367,91 @@ export default {
           }
         }
         async function appendToSpark(file) {
-          return new Promise((resolve) => {
+          return new Promise(resolve => {
             const reader = new FileReader();
             reader.readAsArrayBuffer(file);
-            reader.onload = (e) => {
+            reader.onload = e => {
               spark.append(e.target.result);
               resolve();
             };
-            reader.onerror = function (err) {
+            reader.onerror = function(err) {
               console.warn("reader went wrong.", err);
             };
           });
         }
+      });
+    },
+
+    // window.requestIdleCallback
+    /*  const closeId =  window.requestIdleCallback() 方法插入一个函数，这个函数将在浏览器空闲时期被调用 ,closeId可以把它传入 Window.cancelIdleCallback() 方法来结束回调。 */
+    async calcuateHashIdle(chunks) {
+      return new Promise((resolve, reject) => {
+        const spark = new sparkMD5.ArrayBuffer();
+        let count = 0;
+        window.requestIdleCallback(workLoop);
+        async function workLoop(deadline) {
+          console.warn("deadline", deadline);
+          while (count < chunks.length && deadline.timeRemaining() > 1) {
+            await appendToSpark(chunks[count].file);
+            count++;
+            if (count >= chunks.length) {
+              resolve(spark.end());
+            }
+          }
+          window.requestIdleCallback(workLoop);
+        }
+        async function appendToSpark(file) {
+          return new Promise(resolve => {
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(file);
+            reader.onload = e => {
+              spark.append(e.target.result);
+              resolve();
+            };
+            reader.onerror = function(err) {
+              console.warn("reader went wrong.", err);
+            };
+          });
+        }
+      });
+    },
+
+    async calculateHashSample() {
+      return new Promise(resolve => {
+        const spark = new sparkMD5.ArrayBuffer();
+        const reader = new FileReader();
+        const file = this.file;
+        const size = file.size;
+        const offset = 2 * 1024 * 1024;
+        // 第一个2M，最后一个区块数据全要
+        let chunks = [file.slice(0, offset)];
+        let cur = offset;
+        /*    while (cur < size) {
+          if (cur + offset >= size) {
+            //  最后一个区快
+            // chunks.push(file.slice(cur, cur + offset));
+            chunks.push(file.slice(cur, size));
+          } else {
+            // 中间的区块
+            const mid = cur + offset / 2;
+            const end = cur + offset;
+            chunks.push(file.slice(cur, cur + 2));
+            chunks.push(file.slice(mid, mid + 2));
+            chunks.push(file.slice(end - 2, end));
+          }
+          cur += offset;
+        } */
+        const mid = size / 2;
+        chunks.push(file.slice(mid - offset / 2, mid + offset / 2));
+        chunks.push(file.slice(size - offset, size));
+
+        //中间的，取前中后各2各字节
+        reader.readAsArrayBuffer(new Blob(chunks));
+        reader.onload = e => {
+          spark.append(e.target.result);
+          this.hashProgress = 100;
+          resolve(spark.end());
+        };
       });
     },
 
@@ -298,8 +463,8 @@ export default {
     },
     handlePreview(file) {
       console.log(file);
-    },
-  },
+    }
+  }
 };
 </script>
 

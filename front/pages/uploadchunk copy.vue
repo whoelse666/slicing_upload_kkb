@@ -140,7 +140,7 @@ export default {
     //计算hash Worker
     async calcuateHashWorker(chunks) {
       return new Promise((resolve) => {
-        this.worker = new Worker("/hash.js");
+        this.worker = new Worker("/workerHash.js");
         this.worker.postMessage({ chunks });
         this.worker.onmessage = (event) => {
           const { progress, hash } = event.data;
