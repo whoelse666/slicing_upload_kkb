@@ -1,11 +1,3 @@
-/*
- * @Author: WHO ELSE
- * @Date: 2020-05-06 17:02:53
- * @LastEditTime: 2023-08-07 15:18:50
- * @LastEditors: pengrongwei
- * @FilePath: \my__kkb__project\server\app\controller\util.js
- * @Description:
- */
 
 'use strict';
 
@@ -133,8 +125,32 @@ class UtilController extends BaseController {
     const filePath = path.resolve(this.config.UPLOAD_DIR, `${hash}.${ext}`);
     await this.ctx.service.tools.mergeFile(filePath, hash, size);
     this.success({
-      url: `/public/${hash}.${ext}`,
+      url: `/public/${hash}.${ext}`
     });
+  }
+  // 检查是否已上传或着存在切片
+  async checkfile() {
+    const { ctx } = this;
+    const { hash, ext } = ctx.request.body;
+    const filePath = path.resolve(this.config.UPLOAD_DIR, `${hash}.${ext}`);
+    let uploaded = false,
+      uploadedList = [];
+    if (fse.existsSync(filePath)) {
+      uploaded = true;
+    } else {
+      // uploadedList = await this.getUploadedList(this.config.UPLOAD_DIR.hash);
+      // 文件没有完全上传完毕，但是可能存在部分切片上传完毕了
+      uploadedList = await this.getUploadedList(path.resolve(this.config.UPLOAD_DIR, hash));
+    }
+    console.log('uploaded', uploaded);
+    this.success({
+      uploaded,
+      uploadedList
+    });
+  }
+
+  async getUploadedList(dirPath) {
+    return fse.existsSync(dirPath) ? await fse.readdirSync(dirPath).filter(name => name[0] !== '') : [];
   }
 }
 

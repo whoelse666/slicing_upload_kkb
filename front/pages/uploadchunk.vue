@@ -154,6 +154,13 @@ export default {
       let chunks = this.createChunkFile(file);
       //完整文件的hash 值
       const hash = await this.calcuateHashIdle(chunks);
+
+      const uploaded = await this.checkFile(hash);
+
+      if (uploaded) {
+        this.fileList = [];
+        return;
+      }
       // const hash = sparkMD5.hash("whoelse");  // 测试
       chunks = chunks.map((chunk, index) => {
         return {
@@ -190,7 +197,6 @@ export default {
           return res;
         });
 
-      console.log("requests", requests);
 
       Promise.all(requests).then(async (res) => {
         console.log(" Promise.all", res);
@@ -202,7 +208,8 @@ export default {
           });
         }
         const ret = await this.mergeRequest(this.file, CHUNK_SIZE, hash);
-        // this.file = "";
+          this.fileList = [];
+        this.file = "";
       });
     },
     /**
@@ -211,8 +218,7 @@ export default {
      * @return: null
      */
     async mergeRequest(file, size = CHUNK_SIZE, hash) {
-
-      console.log('mergefile  file',file);
+      console.log("mergefile  file", file);
       return new Promise((resolve, reject) => {
         this.$http
           .post("/mergefile", {
@@ -299,6 +305,22 @@ export default {
     handlePreview(file) {
       console.log(file);
     },
+
+    async checkFile(hash) {
+      const res = await this.$http.post("/checkfile", {
+        hash,
+        ext: this.file.name.split(".").pop(),
+      });
+      const { uploaded, uploadedList } = res.data.data;
+      if (uploaded) {
+        this.$message.warning("文件已存在,秒传成功");
+      }
+      return uploaded;
+    },
+    /*
+
+
+    */
   },
 };
 </script>
