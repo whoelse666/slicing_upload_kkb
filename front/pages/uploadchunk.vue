@@ -47,7 +47,7 @@
             </el-button>
             <el-progress v-if="file" :percentage="percentage"></el-progress>
 
-            <div>
+            <!--    <div>
               <div v-for="item in imgList" :key="item.name">
                 <span>{{ item.name }}</span>
                 <el-image
@@ -56,6 +56,26 @@
                   :src="item.src"
                 >
                 </el-image>
+              </div>
+            </div> -->
+
+            <!-- //* 切片-方格进度显示 -->
+            <div class="cube-container" :style="{ width: cubeWidth + 'px' }">
+              <div class="cube" v-for="chunk in chunks" :key="chunk.name">
+                <div
+                  :class="{
+                    success: chunk.progress == 100,
+                    error: chunk.progress < 0,
+                    uploading: chunk.progress > 0 && chunk.progress < 100,
+                  }"
+                  :style="{ height: chunk.progress + '%' }"
+                >
+                  <i
+                    class="el-icon-loading"
+                    style="color: #f56c6c"
+                    v-if="chunk.progress < 100 && chunk.progress > 0"
+                  ></i>
+                </div>
               </div>
             </div>
           </div>
@@ -94,6 +114,11 @@ export default {
     //   setTimeout(loop, 50);
     // }
     // loop();
+  },
+  computed: {
+    cubeWidth() {
+      return Math.ceil(Math.sqrt(this.chunks.length) * 16);
+    },
   },
   methods: {
     /**
@@ -170,35 +195,38 @@ export default {
       // const hash = sparkMD5.hash("whoelse");  // 测试
       console.log("完整文件的hash 值", hash);
 
-      const uploaded = await this.checkFile(hash);
-
+      const { uploaded, uploadedList } = await this.checkFile(hash);
+      console.log("uploadedList======", uploadedList);
       if (uploaded) {
         this.fileList = [];
         return;
       }
       chunks = chunks.map((chunk, index) => {
+        const name = hash + "-" + index;
         return {
-          name: hash + "-" + index, //required  方块进度显示用切片文件命名
+          name, //required  方块进度显示用切片文件命名
           hash, //完整文件的hash 值 ，作为文件夹命名
           chunk: chunk.file,
+          index,
           //*判断已经上传的切片,精度条方格显示100%
-          // progress: uploaddedList.indexOf(name) > -1 ? 100 : 0,
-          progress: 0, //required  方块进度显示用
+          progress: uploadedList.indexOf(name) > -1 ? 100 : 0,
+          // progress: 0, //required  方块进度显示用
         };
       });
       this.chunks = chunks;
 
-      const requests = chunks.map((chunk, index) => {
-        const form = new FormData();
-        form.append("name", chunk.name);
-        form.append("hash", chunk.hash);
-        // form.append("index", chunk.index);
-        form.append("chunk", chunk.chunk);
-        return { form, index: chunk.index };
-      });
+      const requests = chunks
+        .filter((chunk) => uploadedList.indexOf(chunk.name) == -1)
+        .map((chunk, index) => {
+          const form = new FormData();
+          form.append("name", chunk.name);
+          form.append("hash", chunk.hash);
+          form.append("chunk", chunk.chunk);
+          return { form, index: chunk.index, process: 0, errNum: 0 };
+        });
 
       //  TODO 开启 并发数量控制
-      await this.sendRequest(requests, 3); //控制并发请求数量
+      await this.sendRequest(requests, 5); //控制并发请求数量
       await this.mergeRequest(this.file, CHUNK_SIZE, hash);
 
       /*  const requests = chunks
@@ -209,7 +237,8 @@ export default {
           form.append("chunk", chunk.chunk);
           return form;
         })
-        .map((item, index) => {     //  TODO 启动所有任务
+        // .map((item, index) => {     //  TODO 启动所有任务
+        .map(({item, index}) => {     //  TODO 启动所有任务
           const res = this.$http.post("/uploadfilechunks", item, {
             onUploadProgress: progressEvent => {
               this.chunks[index].progress = (
@@ -240,29 +269,48 @@ export default {
      * @return: null
      */
     sendRequest(chunks, limit = 3) {
-      console.log(" sendRequest(chunks", chunks);
+      const that = this;
       return new Promise((resolve, reject) => {
-        let counter = 0;
+        let counter = 0,
+          isStop = false;
         const len = chunks.length;
         const start = async () => {
+          if (isStop) {
+            return;
+          }
           const task = chunks.shift();
 
           if (task) {
             const { form, index } = task;
-            console.log("form", form);
-            await this.$http.post("/uploadfilechunks", form, {
-              // onUploadProgress: progressEvent => {
-              //   this.chunks[index].progress = (
-              //     (progressEvent.loaded / progressEvent.total) *
-              //     100
-              //   ).toFixed(2);
-              // }
-            });
-            if (counter == len - 1) {
-              resolve();
-            } else {
-              counter++;
-              start();
+            try {
+              await this.$http.post("/uploadfilechunks", form, {
+                onUploadProgress: (progressEvent) => {
+                  that.chunks[index].progress = (
+                    (progressEvent.loaded / progressEvent.total) *
+                    100
+                  ).toFixed(2);
+                },
+              });
+              if (counter == len - 1) {
+                resolve();
+              } else {
+                counter++;
+                start();
+              }
+            } catch (error) {
+              this.chunks[index].progress = -1;
+              if (task.errNum < 3) {
+                task.errNum++;
+                chunks.unshift(task);
+                start();
+              } else {
+                isStop = true;
+                reject("失败了");
+                this.$message({
+                  message: "重试次数已到三次,上传失败",
+                  type: "error",
+                });
+              }
             }
           }
         };
@@ -284,25 +332,11 @@ export default {
       console.log("mergefile  file", file);
       return new Promise((resolve, reject) => {
         this.$http
-          .post(
-            "/mergefile",
-            {
-              ext: file.name.split(".").pop(),
-              size,
-              hash,
-            },
-            {
-              onUploadProgress: (progressEvent) => {
-                if (progressEvent.loaded < progressEvent.total) {
-                  this.percentage =
-                    (progressEvent.loaded / progressEvent.total) * 100;
-                } else {
-                  this.percentage = 100;
-                  this.status = "success";
-                }
-              },
-            }
-          )
+          .post("/mergefile", {
+            ext: file.name.split(".").pop(),
+            size,
+            hash,
+          })
           .then((res) => {
             resolve(res.data);
             this.$message.success("上传成功!");
@@ -310,7 +344,6 @@ export default {
       });
     },
     handleChange(file, fileList) {
-      console.log("file===", file, fileList);
       this.file = file.raw; // file.raw是二进制
     },
 
@@ -480,7 +513,7 @@ export default {
       if (uploaded) {
         this.$message.warning("文件已存在,秒传成功");
       }
-      return uploaded;
+      return { uploaded, uploadedList };
     },
     /*
 
@@ -502,5 +535,25 @@ export default {
   background-color: #b3c0d1;
   color: #333;
   line-height: 60px;
+}
+
+.cube-container {
+  .cube {
+    width: 14px;
+    height: 14px;
+    line-height: 12px;
+    background-color: #eeeeee;
+    border: 1px solid pink;
+    float: left;
+    .success {
+      background-color: green;
+    }
+    .error {
+      background-color: red;
+    }
+    .uploading {
+      background-color: blue;
+    }
+  }
 }
 </style>

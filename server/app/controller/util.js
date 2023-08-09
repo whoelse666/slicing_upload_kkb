@@ -1,4 +1,3 @@
-
 'use strict';
 
 const BaseController = require('./base');
@@ -74,6 +73,10 @@ class UtilController extends BaseController {
 
   // 文件上传
   async uploadfile() {
+    // TODO 模拟报错  重新请求次数控制
+ /*    if (Math.random > 0.8) {
+      return (this.ctx.status = 500);
+    } */
     const { ctx } = this;
     const file = ctx.request.files[0];
     const { name } = ctx.request.body;
@@ -91,13 +94,13 @@ class UtilController extends BaseController {
   // 切片文件上传
   async uploadfilechunks() {
     const { ctx } = this;
-    // 测试上传报错,重试的功能
-    /*     if (Math.random() > 0.6) {
+    // TODO 模拟报错  重新请求次数控制
+    if (Math.random() > 0.55) {
       return (this.ctx.status = 500);
-    } */
+    }
 
     const file = ctx.request.files[0];
-    const { name, hash, chunk, progress } = ctx.request.body;
+    const { name, hash /* chunk, progress  */ } = ctx.request.body;
     const chunkPath = path.resolve(this.config.UPLOAD_DIR, hash);
     console.log('console', chunkPath);
     const items = fs.readdirSync(this.config.UPLOAD_DIR);
