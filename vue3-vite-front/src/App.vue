@@ -1,85 +1,149 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
-  <RouterView />
+  <el-container class="layout-container-demo" style="height: 100%">
+    <el-aside width="200px">
+      <el-scrollbar>
+        <el-menu
+          :default-openeds="['1']"
+          active-text-color="#ffd04b"
+          class="el-menu-vertical-demo"
+          default-active="2"
+          background-color="rgb(48, 65, 86)"
+          text-color="rgb(191, 203, 217)"
+          @open="handleOpen"
+          @close="handleClose"
+        >
+          <el-sub-menu index="1">
+            <template #title>
+              <el-icon><message /></el-icon>
+              Navigator One
+            </template>
+            <el-menu-item-group>
+              <template #title>Group 1</template>
+              <el-menu-item index="1-1">Option 1</el-menu-item>
+              <el-menu-item index="1-2">Option 2</el-menu-item>
+            </el-menu-item-group>
+            <el-menu-item-group title="Group 2">
+              <el-menu-item index="1-3">Option 3</el-menu-item>
+            </el-menu-item-group>
+            <el-sub-menu index="1-4">
+              <template #title>Option4</template>
+              <el-menu-item index="1-4-1">Option 4-1</el-menu-item>
+            </el-sub-menu>
+          </el-sub-menu>
+          <el-sub-menu index="2">
+            <template #title>
+              <el-icon><icon-menu /></el-icon>
+              Navigator Two
+            </template>
+            <el-menu-item-group>
+              <template #title>Group 1</template>
+              <el-menu-item index="2-1">Option 1</el-menu-item>
+              <el-menu-item index="2-2">Option 2</el-menu-item>
+            </el-menu-item-group>
+            <el-menu-item-group title="Group 2">
+              <el-menu-item index="2-3">Option 3</el-menu-item>
+            </el-menu-item-group>
+            <el-sub-menu index="2-4">
+              <template #title>Option 4</template>
+              <el-menu-item index="2-4-1">Option 4-1</el-menu-item>
+            </el-sub-menu>
+          </el-sub-menu>
+          <el-sub-menu index="3">
+            <template #title>
+              <el-icon><setting /></el-icon>
+              Navigator Three
+            </template>
+            <el-menu-item-group>
+              <template #title>Group 1</template>
+              <el-menu-item index="3-1">Option 1</el-menu-item>
+              <el-menu-item index="3-2">Option 2</el-menu-item>
+            </el-menu-item-group>
+            <el-menu-item-group title="Group 2">
+              <el-menu-item index="3-3">Option 3</el-menu-item>
+            </el-menu-item-group>
+            <el-sub-menu index="3-4">
+              <template #title>Option 4</template>
+              <el-menu-item index="3-4-1">Option 4-1</el-menu-item>
+            </el-sub-menu>
+          </el-sub-menu>
+        </el-menu>
+      </el-scrollbar>
+    </el-aside>
+    <el-container>
+      <el-header style="text-align: right; font-size: 12px">
+        <div class="toolbar">
+          <el-dropdown>
+            <el-icon style="margin-right: 8px; margin-top: 1px"><setting /></el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item>View</el-dropdown-item>
+                <el-dropdown-item>Add</el-dropdown-item>
+                <el-dropdown-item>Delete</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <span>Tom</span>
+        </div>
+      </el-header>
+      <el-main>
+        <RouterView />
+        <!-- <el-scrollbar>
+          <el-table :data="tableData">
+            <el-table-column prop="date" label="Date" width="140" />
+            <el-table-column prop="name" label="Name" width="120" />
+            <el-table-column prop="address" label="Address" />
+          </el-table>
+        </el-scrollbar> -->
+      </el-main>
+    </el-container>
+  </el-container>
 </template>
 
+<script lang="ts" setup>
+import { ref } from 'vue';
+import { RouterView } from 'vue-router';
+import { Menu as IconMenu, Message, Setting } from '@element-plus/icons-vue';
+
+const item = {
+  date: '2016-05-02',
+  name: 'Tom',
+  address: 'No. 189, Grove St, Los Angeles'
+};
+const tableData = ref(Array.from({ length: 20 }).fill(item));
+
+const handleOpen = (key: string, keyPath: string[]) => {
+  console.log(key, keyPath);
+};
+const handleClose = (key: string, keyPath: string[]) => {
+  console.log(key, keyPath);
+};
+</script>
+
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.layout-container-demo .el-header {
+  position: relative;
+  /* background-color: var(--el-color-primary-light-7); */
+  /* color: var(--el-text-color-primary); */
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.el-scrollbar {
+  background-color: rgb(48, 65, 86);
 }
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+/* .layout-container-demo .el-aside {
+  color: var(--el-text-color-primary);
+  background: var(--el-color-primary-light-8);
 }
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.layout-container-demo .el-menu {
+  border-right: none;
 }
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.layout-container-demo .el-main {
+  padding: 0;
 }
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
+.layout-container-demo .toolbar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  right: 20px;
+} */
 </style>
