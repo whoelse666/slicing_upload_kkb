@@ -74,7 +74,7 @@ class UtilController extends BaseController {
   // 文件上传
   async uploadfile() {
     // TODO 模拟报错  重新请求次数控制
- /*    if (Math.random > 0.8) {
+    /*    if (Math.random > 0.8) {
       return (this.ctx.status = 500);
     } */
     const { ctx } = this;
@@ -95,9 +95,9 @@ class UtilController extends BaseController {
   async uploadfilechunks() {
     const { ctx } = this;
     // TODO 模拟报错  重新请求次数控制
-    if (Math.random() > 0.55) {
+    /*   if (Math.random() > 0.85) {
       return (this.ctx.status = 500);
-    }
+    } */
 
     const file = ctx.request.files[0];
     const { name, hash /* chunk, progress  */ } = ctx.request.body;
@@ -127,6 +127,12 @@ class UtilController extends BaseController {
     const { size, hash, ext } = this.ctx.request.body;
     const filePath = path.resolve(this.config.UPLOAD_DIR, `${hash}.${ext}`);
     await this.ctx.service.tools.mergeFile(filePath, hash, size);
+    /* 
+       this.ctx.body = {
+      code:0,
+      msg:'合并成功'
+    }
+    */
     this.success({
       url: `/public/${hash}.${ext}`
     });
@@ -147,13 +153,17 @@ class UtilController extends BaseController {
     }
     console.log('uploaded', uploaded);
     this.success({
+      code: 0,
       uploaded,
-      uploadedList
+      uploadedList // 过滤诡异的隐藏文件
     });
   }
 
   async getUploadedList(dirPath) {
-    return fse.existsSync(dirPath) ? await fse.readdirSync(dirPath).filter(name => name[0] !== '') : [];
+    // return fse.existsSync(dirPath) ? await fse.readdirSync(dirPath).filter(name => name[0] !== '') : [];
+    return fse.existsSync(dirPath)
+      ? (await fse.readdir(dirPath)).filter(name => name[0] !== '.') // 过滤诡异的隐藏文件 比如.DS_store
+      : [];
   }
 }
 
