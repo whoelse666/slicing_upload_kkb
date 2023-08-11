@@ -14,13 +14,12 @@ const routes = Object.entries(pages).map(([path, meta]) => {
   path = path || '';
   const name = path.split('/').filter(Boolean).join('-') || 'index';
   const component = pageJsPath.replace('page.js', 'index.vue');
-  console.log('meta',meta);
   return {
     path: path.toLocaleLowerCase(),
     name,
     component: pageComps[component],
-    meta
-    // children:[]
+    meta,
+    children: []
   };
 });
 routes.unshift({

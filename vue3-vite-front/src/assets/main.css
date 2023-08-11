@@ -10,6 +10,12 @@ body {
   margin: 0;
   padding: 0;
 }
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
 /*
 #app {
   max-width: 1280px;

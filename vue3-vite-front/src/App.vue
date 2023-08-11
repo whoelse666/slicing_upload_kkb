@@ -1,3 +1,4 @@
+@click="handleMenuItem"
 <template>
   <el-container class="layout-container" style="height: 100%">
     <el-aside>
@@ -12,36 +13,30 @@
         @close="handleClose"
         :collapse="menuStore.isOpened"
       >
-        <el-sub-menu index="1">
-          <template #title>
-            <el-icon><location /></el-icon>
-            <span>Navigator One</span>
-          </template>
-          <el-menu-item-group>
-            <template #title><span>Group One</span></template>
-            <el-menu-item index="1-1">item one</el-menu-item>
-            <el-menu-item index="1-2">item two</el-menu-item>
-          </el-menu-item-group>
-          <el-menu-item-group title="Group Two">
-            <el-menu-item index="1-3">item three</el-menu-item>
-          </el-menu-item-group>
-          <el-sub-menu index="1-4">
-            <template #title><span>item four</span></template>
-            <el-menu-item index="1-4-1">item one</el-menu-item>
+        <template v-for="(item, index) in menuList" :key="item.label">
+          <el-menu-item :index="index" v-if="!item.children">
+            <el-icon><component :is="item.icon" /></el-icon>
+            <router-link :to="item.path">
+              <span>{{ item.label }}</span>
+            </router-link>
+          </el-menu-item>
+
+          <el-sub-menu v-else :index="index">
+            <template #title>
+              <el-icon><component :is="item.icon" /></el-icon>
+              <router-link :to="item.path">
+                <span>{{ item.label }}</span>
+              </router-link>
+            </template>
+            <el-menu-item-group v-if="item.children && item.children.length > 0">
+              <el-menu-item @click="handleMenuItem" :index="index + '-' + index2" v-for="(item2, index2) in item.children" :key="item2.label">
+                <router-link :to="item2.path">
+                  <span>{{ item2.label }}</span>
+                </router-link>
+              </el-menu-item>
+            </el-menu-item-group>
           </el-sub-menu>
-        </el-sub-menu>
-        <el-menu-item index="2">
-          <el-icon><icon-menu /></el-icon>
-          <template #title>Navigator Two</template>
-        </el-menu-item>
-        <el-menu-item index="3" disabled>
-          <el-icon><document /></el-icon>
-          <template #title>Navigator Three</template>
-        </el-menu-item>
-        <el-menu-item index="4">
-          <el-icon><setting /></el-icon>
-          <template #title>Navigator Four</template>
-        </el-menu-item>
+        </template>
       </el-menu>
     </el-aside>
 
@@ -50,33 +45,64 @@
         <Header />
       </el-header>
 
-      <!-- <el-main>
+      <el-main>
         <RouterView />
-     <el-scrollbar>
-          <el-table :data="tableData">
-            <el-table-column prop="date" label="Date" width="140" />
-            <el-table-column prop="name" label="Name" width="120" />
-            <el-table-column prop="address" label="Address" />
-          </el-table>
-        </el-scrollbar>  
-      </el-main> -->
+      </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { RouterView } from 'vue-router';
+import { RouterView, RouterLink } from 'vue-router';
 import Header from '@/components/Header.vue';
-import { Menu as IconMenu, Message, Setting } from '@element-plus/icons-vue';
+import { Menu as IconMenu, Message, Setting, Share, Document } from '@element-plus/icons-vue';
 import { useMenuStore } from '@/stores/menu';
 const menuStore = useMenuStore();
 const defaultOpeneds = ref(['1']);
+const menuList = ref([
+  {
+    label: '首页',
+    path: '/',
+    icon: Share
+  },
+  {
+    label: '关于',
+    path: '/about',
+    icon: Document,
+    children: [
+      {
+        label: '关于1',
+        path: '/about/child'
+      }
+    ]
+  },
+  {
+    label: '其他',
+    path: '/other',
+    icon: Message,
+    children: [
+      {
+        label: '其他1',
+        path: '/other/child'
+      }
+    ]
+  },
+  {
+    label: '测试',
+    path: '/test',
+    icon: Setting,
+    children: []
+  }
+]);
 const handleOpen = (key: string, keyPath: string[]) => {
   console.log(key, keyPath);
 };
 const handleClose = (key: string, keyPath: string[]) => {
   console.log(key, keyPath);
+};
+const handleMenuItem = m => {
+  console.log(m);
 };
 const item = {
   date: '2016-05-02',
