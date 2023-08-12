@@ -70,7 +70,7 @@ const routerList = computed(() => {
 });
 
 function isDashboard(v: any) {
-  const name = v && v.name;
+  const name = v;
   if (!name) {
     return false;
   }

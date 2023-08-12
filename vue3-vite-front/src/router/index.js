@@ -26,6 +26,11 @@ routes.unshift({
   path: '/',
   redirect: '/home'
 });
+routes.push({
+  path: '/:pathMatch(.*)',
+  name:'404',
+  component: () => import('@/components/NotFound.vue')
+});
 console.log('routes', routes);
 
 const router = createRouter({
