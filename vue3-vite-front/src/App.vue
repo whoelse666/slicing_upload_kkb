@@ -58,7 +58,7 @@
 import { ref } from 'vue';
 import { RouterView, RouterLink } from 'vue-router';
 import Header from '@/components/Header.vue';
-import { Menu as IconMenu, Message, Setting, Share, Document } from '@element-plus/icons-vue';
+import { Menu as IconMenu, Message, Setting, Share,HomeFilled, Document } from '@element-plus/icons-vue';
 import { useMenuStore } from '@/stores/menu';
 const menuStore = useMenuStore();
 const defaultOpeneds = ref(['1']);
@@ -66,7 +66,7 @@ const menuList = ref([
   {
     label: '首页',
     path: '/',
-    icon: Share
+    icon: HomeFilled
   },
   {
     label: '关于',
