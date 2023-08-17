@@ -4,10 +4,15 @@
   </div>
 </template>
 
+<script lang="ts" setup>
+// import { onMounted, ref } from 'vue';
+ 
+import { getMusic } from '@/api/login';
+getMusic();
+</script>
 <style>
 @media (min-width: 1024px) {
   .home {
-
     display: flex;
     align-items: center;
   }

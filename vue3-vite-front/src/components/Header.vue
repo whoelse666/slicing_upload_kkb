@@ -37,7 +37,7 @@ import { useMenuStore } from '@/stores/menu';
 const menuStore = useMenuStore();
 import { useGloabStore } from '@/stores/gloab';
 const gloabStore = useGloabStore();
-// const circleUrl = ref<string | undefined>('https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png');
+ 
 const circleUrl = ref<string | undefined>('https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png');
 const breadList = ref<Array<BreadcrumbType>>([]);
 /*
@@ -52,7 +52,6 @@ onMounted(() => {
   // getBreadcrumb();
 });
 const routerList = computed(() => {
-  console.log('matched :>> ', route.matched);
   if (route.matched.length <= 0) {
     return [];
   }
@@ -65,7 +64,7 @@ const routerList = computed(() => {
   }
 
   const list = matched;
-  console.log('list :>> ', list);
+  // console.log('list :>> ', list);
   return list;
 });
 

@@ -15,7 +15,7 @@
           :collapse="menuStore.isOpened"
         >
           <template v-for="(item, index) in menuList" :key="item.label">
-            <el-menu-item :index="index" v-if="!item.children">
+            <el-menu-item :index="index + 0" v-if="!item.children">
               <el-icon><component :is="item.icon" /></el-icon>
               <router-link :to="item.path">
                 <span>{{ item.label }}</span>
@@ -55,10 +55,10 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, shallowRef } from 'vue';
 import { RouterView, RouterLink } from 'vue-router';
 import Header from '@/components/Header.vue';
-import { Menu as IconMenu, Message, Setting, Share, Document } from '@element-plus/icons-vue';
+import { Menu as IconMenu, Message, Setting,HomeFilled, Document } from '@element-plus/icons-vue';
 import { useMenuStore } from '@/stores/menu';
 const menuStore = useMenuStore();
 const defaultOpeneds = ref(['1']);
@@ -66,12 +66,12 @@ const menuList = ref([
   {
     label: '首页',
     path: '/',
-    icon: Share
+    icon: shallowRef(HomeFilled)
   },
   {
     label: '关于',
     path: '/about',
-    icon: Document,
+    icon: shallowRef(Document),
     children: [
       {
         label: '关于1',
@@ -84,14 +84,13 @@ const menuList = ref([
       {
         label: '关于3',
         path: '/about/child'
-      },
-     
+      }
     ]
   },
   {
     label: '其他',
     path: '/other',
-    icon: Message,
+    icon: shallowRef(Message),
     children: [
       {
         label: '其他1',
@@ -102,7 +101,7 @@ const menuList = ref([
   {
     label: '测试',
     path: '/test',
-    icon: Setting,
+    icon: shallowRef(Setting),
     children: []
   }
 ]);
@@ -114,11 +113,6 @@ const handleClose = (key: string, keyPath: string[]) => {
 };
 const handleMenuItem = (m: any) => {
   console.log(m);
-};
-const item = {
-  date: '2016-05-02',
-  name: 'Tom',
-  address: 'No. 189, Grove St, Los Angeles'
 };
 </script>
 

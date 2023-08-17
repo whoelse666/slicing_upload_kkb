@@ -6,7 +6,6 @@ const pages = import.meta.glob('../views/**/page.js', {
 });
 
 const pageComps = import.meta.glob('../views/**/index.vue', {});
-console.log('pageComps', pageComps);
 
 const routes = Object.entries(pages).map(([path, meta]) => {
   const pageJsPath = path;
@@ -31,8 +30,7 @@ routes.push({
   name:'404',
   component: () => import('@/components/NotFound.vue')
 });
-console.log('routes', routes);
-
+ 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes

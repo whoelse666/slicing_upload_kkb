@@ -5,6 +5,8 @@ import vue from '@vitejs/plugin-vue';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // envDir: './environments',
+  // envPrefix: '__',
   plugins: [vue()],
   resolve: {
     alias: {
@@ -15,6 +17,24 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         // additionalData: `@import "./src/styles/variables.scss";`
+      }
+    }
+  },
+  server: {
+    port: 5173,
+    host: true,
+    proxy: {
+      '/blob': {
+        target: 'http://jsonplaceholder.typicode.com',
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/blob/, '')
+      },
+      '/wyy': {
+        target: 'https://api.vvhan.com/api',
+        // https://api.vvhan.com/api/avatar
+        // https://api.vvhan.com/api/music
+        changeOrigin: true,
+        rewrite: path => path.replace(/^\/wyy/, '')
       }
     }
   }

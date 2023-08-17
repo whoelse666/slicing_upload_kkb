@@ -1,13 +1,12 @@
 <template>
   <div>
-    <transition-group name="breadcrumb">
-      <el-breadcrumb class="breadcrumb" separator="/">
-        <el-breadcrumb-item v-for="item in list" :key="item">
-          <!-- <el-breadcrumb-item :to="{ path: '/' + item }" v-for="item in list" :key="item"> -->
-          {{ item }}
-        </el-breadcrumb-item>
-      </el-breadcrumb>
-    </transition-group>
+    <!-- <transition-group name="breadcrumb"> -->
+    <el-breadcrumb class="breadcrumb" separator="/">
+      <el-breadcrumb-item v-for="item in list" :key="item">
+        {{ item }}
+      </el-breadcrumb-item>
+    </el-breadcrumb>
+    <!-- </transition-group> -->
   </div>
 </template>
 
