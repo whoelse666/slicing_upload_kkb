@@ -12,6 +12,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.1.0",
     "@vueuse/core": "^10.3.0",
+    "axios": "^1.4.0",
     "element-plus": "^2.3.9",
     "path-to-regexp": "^6.2.1",
     "pinia": "^2.1.4",
