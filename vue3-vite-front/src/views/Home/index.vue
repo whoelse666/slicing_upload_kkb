@@ -5,10 +5,10 @@
 </template>
 
 <script lang="ts" setup>
-// import { onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
  
 import { getMusic } from '@/api/login';
-getMusic();
+onMounted(getMusic);
 </script>
 <style>
 @media (min-width: 1024px) {
