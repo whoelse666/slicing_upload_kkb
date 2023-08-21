@@ -1,28 +1,42 @@
 <template>
   <div class="login flex justify-center items-center w-full h-full">
     <div
-      class="login-form text-center p-10 w-3/6 h-96 rounded border-2 border-slate-200 border-solid"
+      class="login-form overflow-hidden text-center p-10 w-3/5 h-96 rounded border-2 border-slate-200 border-solid"
     >
       <h1 class="text-3xl font-bold mb-10">登录</h1>
-      <el-form ref="ruleFormRef" :model="ruleForm" status-icon :rules="rules" class="">
-        <el-form-item label="" prop="username">
+      <el-form
+        ref="ruleFormRef"
+        :model="ruleForm"
+        status-icon
+        :rules="rules"
+        class="demo-ruleForm"
+        label-width="100px"
+      >
+        <el-form-item label="用户名" prop="username">
           <el-input v-model.number="ruleForm.username" />
         </el-form-item>
-        <el-form-item label="" prop="pass">
+        <el-form-item label="密码" prop="pass">
           <el-input v-model="ruleForm.pass" type="password" autocomplete="off" />
         </el-form-item>
-        <el-form-item label="" prop="checkPass">
+        <el-form-item label="验证码" prop="code">
+          <el-input v-model="ruleForm.code" type="text" autocomplete="off" />
+        </el-form-item>
+        <!-- <el-form-item label="确认密码" prop="checkPass">
           <el-input
             autofocus
             v-model="ruleForm.checkPass"
             type="password"
             autocomplete="off"
           />
-        </el-form-item>
+        </el-form-item> -->
 
-        <el-form-item class="mt-10">
-          <el-button type="primary" @click="submitForm(ruleFormRef)">Submit</el-button>
-          <el-button @click="resetForm(ruleFormRef)">Reset</el-button>
+        <el-form-item>
+          <div class="w-full flex justify-center items-center">
+            <el-button type="primary" @click.prevent="handleLogin(ruleFormRef)"
+              >登录</el-button
+            >
+            <el-button @click.prevent="handleRegister(ruleFormRef)">注册</el-button>
+          </div>
         </el-form-item>
       </>
     </div>
@@ -89,13 +103,14 @@ const ruleForm = reactive({
   pass: '',
   code: '',
   checkPass: '',
-  username: '',
+  username: ''
 });
 
 const rules = reactive<FormRules<typeof ruleForm>>({
   pass: [{ validator: validatePass, trigger: 'blur' }],
   checkPass: [{ validator: validatePass2, trigger: 'blur' }],
-  username: [{ validator: checkAge, trigger: 'blur' }],
+  username: [{ validator: checkUsername, trigger: 'blur' }],
+  code: [{ validator: checkCode, trigger: 'blur' }]
 });
 
 const handleLogin = (formEl: FormInstance | undefined) => {
