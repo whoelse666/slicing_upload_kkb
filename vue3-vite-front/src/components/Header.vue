@@ -2,9 +2,7 @@
   <div class="navbar">
     <div class="left-ctr">
       <hamburger id="hamburger-container" :is-active="!menuStore.isOpened" @toggleClick="toggleSideBar" />
-
       <Breadcrumb :list="routerList" />
-
       <!-- <el-breadcrumb-item><a href="/">promotion management</a></el-breadcrumb-item> -->
     </div>
     <div class="right-ctr">
