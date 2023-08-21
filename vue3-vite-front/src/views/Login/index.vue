@@ -1,7 +1,7 @@
 <template>
   <div class="login flex justify-center items-center w-full h-full">
     <div
-      class="login-form overflow-hidden text-center p-10 w-3/5 h-96 rounded border-2 border-slate-200 border-solid"
+      class="login-form overflow-hidden text-center p-10 w-360 h-96 rounded border-2 border-slate-200 border-solid"
     >
       <h1 class="text-3xl font-bold mb-10">登录</h1>
       <el-form
@@ -38,7 +38,7 @@
             <el-button @click.prevent="handleRegister(ruleFormRef)">注册</el-button>
           </div>
         </el-form-item>
-      </>
+      </el-form>
     </div>
   </div>
 </template>
@@ -152,6 +152,9 @@ const handleRegister = (formEl: FormInstance | undefined) => {
 };
 </script>
 <style>
+.el-form-item__label {
+  width: 80px !important;
+}
 /* @media (min-width: 1024px) {
   .login {
     display: flex;
