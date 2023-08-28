@@ -1,10 +1,10 @@
 <!--
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2020-05-12 15:02:59
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-07 22:21:06
+ * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\upload.vue
- * @Description: 
+ * @Description:
  -->
 
 <template>
@@ -37,7 +37,7 @@ export default {
       baseUrl: "http://127.0.0.1:7001",
       url: "",
       percentage: 0,
-      status: "" //warning  exception  success
+      status: "exception" //warning  exception  success
     };
   },
   methods: {
@@ -46,7 +46,7 @@ export default {
       console.log("console", file);
       if (file) {
         this.percentage = 0;
-        this.status = "";
+        this.status = "exception";
         this.file = file;
       }
     },

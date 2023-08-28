@@ -1,8 +1,8 @@
 /*
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-04-13 20:37:46
- * @LastEditTime: 2020-05-08 22:32:30
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-06 20:17:33
+ * @LastEditors: pengrongwei
  * @Description
  */
 /* eslint valid-jsdoc: "off" */
@@ -25,7 +25,7 @@ module.exports = appInfo => {
   /* 文件上传需要打开以下配置 */
   config.multipart = {
     mode: 'file',
-    whitelist: () => true, // 白名单，默认所有格式
+    whitelist: () => true // 白名单，默认所有格式
   };
 
   config.UPLOAD_DIR = path.resolve(__dirname, '../app/public'); // config.middleware = []
@@ -41,17 +41,17 @@ module.exports = appInfo => {
     security: {
       // 添加该项，放开post请求
       csrf: {
-        enable: false,
-      },
+        enable: false
+      }
     },
-    mongoose: {
-      client: {
-        url: 'mongodb://127.0.0.1:27017:kkbhub',
-        options: {},
-      },
-    },
+    // mongoose: {
+    //   client: {
+    //     url: 'mongodb://127.0.0.1:27017:kkbhub',
+    //     options: {}
+    //   }
+    // },
     jwt: {
-      secret: '@kaikeba!123',
-    },
+      secret: '@kaikeba!123'
+    }
   };
 };

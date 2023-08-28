@@ -1,8 +1,8 @@
 <!--
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-05-08 15:29:25
- * @LastEditTime: 2020-05-13 20:37:59
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-09 17:46:08
+ * @LastEditors: pengrongwei
  * @FilePath: \my__kkb__project\front\pages\uploadLimit.vue
  * @Description:
  -->
@@ -61,7 +61,7 @@
 //***************************************************************************************/
 <script>
 import sparkMD5 from "spark-md5";
-const CHUNK_SIZE = 0.5 * 1024 * 1024;
+const CHUNK_SIZE = (1 / 16) * 1024 * 1024;
 export default {
   name: "uploadchunk",
   data() {
@@ -70,7 +70,7 @@ export default {
       file: null,
       chunks: [],
       percentage: 0,
-      status: "", //warning  exception  success
+      status: "exception", //warning  exception  success
       url: "",
       srcList: []
     };
@@ -85,20 +85,20 @@ export default {
     // input  change事件
     handleFileChange(e) {
       const [file] = e.target.files;
-      console.log("console", file);
+      console.log("handleFileChange file", file);
       if (!file || !file.size) {
         this.alertMessage("error", "文件获取异常");
         return;
       }
       if (file) {
         this.percentage = 0;
-        this.status = "";
+        this.status = "exception";
         this.file = file;
       }
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:45:42
      * @LastEditTime: Do not edit
      * @Description: 文件切块
@@ -120,13 +120,15 @@ export default {
           cur += chunkSize;
         }
       }
+console.log('chunks===',chunks);
+
       return chunks;
     },
 
     //计算hash Worker
     async calcuateHashWorker(chunks) {
       return new Promise(resolve => {
-        this.worker = new Worker("/hash.js");
+        this.worker = new Worker("/workerHash.js");
         this.worker.postMessage({ chunks });
         this.worker.onmessage = event => {
           const { progress, hash } = event.data;
@@ -142,7 +144,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:10:30
      * @LastEditTime: Do not edit
      * @Description: 计算hash Idle
@@ -183,7 +185,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 14:32:29
      * @LastEditTime: Do not edit
      * @Description: 计算文件的哈希值
@@ -232,7 +234,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:44:34
      * @LastEditTime: Do not edit
      * @Description: 上传文件
@@ -251,6 +253,7 @@ export default {
       const form = new FormData();
       form.append("name", file.name);
       form.append("file", file);
+            console.log("uploadFile file ", file);
       const res = await this.$http.post("/uploadfile", form, {
         onUploadProgress: progressEvent => {
           console.log("progressEvent", progressEvent);
@@ -275,9 +278,7 @@ export default {
     },
 
     /**
-     * @Name: RONGWEI PENG
-     * @Date: 2020-05-09 15:17:45
-     * @LastEditTime: Do not edit
+     * @Name: WHO ELSE
      * @Description:
      * @param {type} {}
      * @return: {}
@@ -292,7 +293,7 @@ export default {
       const hash = await this.calcuateHashWorker(chunks);
       // const hash = await this.calcuateHashIdle(chunks);
       // const hash = sparkMD5.hash("WhoElse");
-      console.log("console", hash);
+         console.log("hash===", hash);
       this.chunks = chunks.map((chunk, index) => {
         let name = hash + "-" + index;
         return {
@@ -318,9 +319,6 @@ export default {
         .map((form, index) =>
           this.$http.post("/uploadfilechunks", form, {
             onUploadProgress: progressEvent => {
-              console.log(
-                ((progressEvent.loaded / progressEvent.total) * 100).toFixed(2)
-              );
               this.chunks[index].progress = (
                 (progressEvent.loaded / progressEvent.total) *
                 100
@@ -329,7 +327,7 @@ export default {
           })
         );
 
-      await this.sendRequest(requests, 3); //控制并发请求数量
+      // await this.sendRequest(requests, 3); //控制并发请求数量
       await this.mergeRequest(this.file, CHUNK_SIZE, hash);
     },
 
@@ -340,14 +338,7 @@ export default {
         let counter = 0,
           isStop = false;
         const len = chunks.length;
-
-        //*控制启动limit个任务
-        while (limit > 0) {
-          // 模拟延迟
-          setTimeout(() => start(), Math.random() * 2000);
-          limit--;
-        }
-        const start = async () => {
+  const start = async () => {
           const task = chunks.shift();
           console.log("task", task);
           if (!task) {
@@ -358,6 +349,7 @@ export default {
             if (counter == len - 1) {
               resolve();
             } else {
+
               await this.$http.post("/uploadfilechunks", form, {
                 onUploadProgress: progressEvent => {
                   this.chunks[index].progress = (
@@ -382,11 +374,18 @@ export default {
             }
           }
         };
+        //*控制启动limit个任务
+        while (limit > 0) {
+          // 模拟延迟
+          setTimeout(() => start(), Math.random() * 2000);
+          limit--;
+        }
+      
       });
     },
 
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 15:54:41
      * @LastEditTime: Do not edit
      * @Description: 合并切片文件
@@ -468,7 +467,7 @@ export default {
       return isOk;
     },
     /**
-     * @Name: RONGWEI PENG
+     * @Name: WHO ELSE
      * @Date: 2020-05-09 13:44:34
      * @LastEditTime: Do not edit
      * @Description: message 提示

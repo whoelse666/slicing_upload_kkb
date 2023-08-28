@@ -1,8 +1,8 @@
 /*
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-05-06 16:47:17
- * @LastEditTime: 2020-05-08 20:37:01
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-06 19:30:14
+ * @LastEditors: pengrongwei
  * @FilePath: /my__kkb__project/server/app/controller/user.js
  * @Description:
  */
@@ -18,13 +18,13 @@ const registerRule = {
   password: { type: 'string' },
   checkPass: { type: 'string' },
   nickname: { type: 'string' },
-  captcha: { type: 'string' },
+  captcha: { type: 'string' }
 };
 const loginRule = {
   email: { type: 'email' },
   password: { type: 'string' },
   code: { type: 'string' },
-  captcha: { type: 'string' },
+  captcha: { type: 'string' }
 };
 
 class UserController extends BaseController {
@@ -39,17 +39,13 @@ class UserController extends BaseController {
     // }
     const { email, password, emailcode, captcha } = ctx.request.body;
     if (captcha.toUpperCase() !== ctx.session.captcha.toUpperCase()) {
-      return this.error('验证码错误!');
+      return this.error('图片验证码错误');
     }
     if (await !this.checkEmail({ email, password: md5(password + HashSalt) })) {
       return this.error('用户密码错误');
     }
 
-    console.log(
-      'emailcode !== ctx.session.emailcode',
-      emailcode,
-      ctx.session.emailcode
-    );
+    console.log('emailcode !== ctx.session.emailcode', emailcode, ctx.session.emailcode);
     if (emailcode !== ctx.session.emailcode) {
       return this.error('邮箱验证码错误');
     }
@@ -75,13 +71,9 @@ class UserController extends BaseController {
       return this.error('两次密码不相同!');
     }
 
-    console.log(
-      'console======',
-      captcha.toUpperCase(),
-      ctx.session.captcha.toUpperCase()
-    );
+    console.log('console======', captcha.toUpperCase(), ctx.session.captcha.toUpperCase());
     if (captcha.toUpperCase() !== ctx.session.captcha.toUpperCase()) {
-      return this.error('验证码错误!');
+      return this.error('验证码错误');
     }
     if (!nickname.match(regExp)) {
       return this.error('昵称格式包含非中文!');
@@ -90,7 +82,7 @@ class UserController extends BaseController {
     const res = await ctx.model.User.create({
       email,
       nickname,
-      password: md5(password + HashSalt),
+      password: md5(password + HashSalt)
     });
     if (res._id) {
       this.message('注册成功');
@@ -98,7 +90,7 @@ class UserController extends BaseController {
   }
 
   /**
-   * @Name: RONGWEI PENG
+   * @Name: WHO ELSE
    * @Date: 2020-05-08 11:21:19
    * @LastEditTime: Do not edit
    * @Description: 校验邮箱是否已存在
@@ -106,6 +98,7 @@ class UserController extends BaseController {
    * @return: {}
    */
   async checkEmail(data) {
+    console.log('model.User');
     const user = await this.ctx.model.User.findOne({ ...data });
     console.log('model.User', user);
     return user;

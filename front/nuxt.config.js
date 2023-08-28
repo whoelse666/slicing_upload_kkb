@@ -1,8 +1,8 @@
 /*
- * @Author: RONGWEI PENG
+ * @Author: WHO ELSE
  * @Date: 2020-05-06 16:47:08
- * @LastEditTime: 2020-05-12 22:58:21
- * @LastEditors: Do not edit
+ * @LastEditTime: 2023-08-07 22:21:33
+ * @LastEditors: pengrongwei
  * @FilePath: /my__kkb__project/front/nuxt.config.js
  * @Description:
  */

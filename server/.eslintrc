@@ -2,6 +2,7 @@
   "extends": "eslint-config-egg",
   "rules": {
     "semi": ["error", "always"],
+    "comma-dangle": ["error", "never"],
     "spaced-comment": ["error", "always"], // 注释前必须有空格
     "eggache/no-unexpected-plugin-keys": "never"
   }

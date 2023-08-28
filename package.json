@@ -6,7 +6,9 @@
   "scripts": {
     "front": "cd front  && npm run dev ",
     "server": "cd server  && npm run dev ",
-    "mongo": "cd adminMongo  && npm start "
+    "mongo": "cd adminMongo  && npm start ",
+    "vite": "cd vue3-vite-front  && npm run dev ",
+    "prepare": "husky install"
   },
   "repository": {
     "type": "git",
@@ -14,5 +16,8 @@
   },
   "keywords": [],
   "author": "'whoelse' <'347300979@qq.com'>",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "husky": "^8.0.0"
+  }
 }
